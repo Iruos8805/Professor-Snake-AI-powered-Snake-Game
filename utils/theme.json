@@ -12,6 +12,11 @@
             "shape": "rounded_rectangle",
             "shape_corner_radius": "7"
         }
+    },
+    "#score_label": {
+        "font": {
+            "size":"36"
+        }
     }
 }
   

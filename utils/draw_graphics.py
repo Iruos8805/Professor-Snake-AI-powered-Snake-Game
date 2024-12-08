@@ -3,6 +3,7 @@ import pygame_gui
 from .config_constants import *
 import random
 from .snake_algorithms import *
+import os
 
 screen = pygame.display.set_mode((SCREEN_SIZE + 800, SCREEN_SIZE + 200))
 
@@ -14,9 +15,27 @@ screen = pygame.display.set_mode((SCREEN_SIZE + 800, SCREEN_SIZE + 200))
 GRID_WIDTH = GRID_SIZE * CELL_SIZE
 GRID_HEIGHT = GRID_SIZE * CELL_SIZE
 current_algorithm = None
+score = 0
+score_label = None
+
 
 pygame.init()
 manager = pygame_gui.UIManager((SCREEN_SIZE + 800, SCREEN_SIZE + 200), 'utils/theme.json')
+
+try:
+    background_image = pygame.image.load("back.png")  # Adjust this path
+    background_image = pygame.transform.scale(background_image, (SCREEN_SIZE + 800, SCREEN_SIZE + 200))  # Scale to fit window size
+except pygame.error as e:
+    print(f"Error loading background image: {e}")
+    background_image = pygame.Surface((SCREEN_SIZE + 800, SCREEN_SIZE + 200))  
+    background_image.fill((0, 0, 0))  # Fallback
+
+font_path = "Pixelify_Sans/PixelifySans-VariableFont_wght.ttf"
+if os.path.exists(font_path):
+    font = pygame.font.Font(font_path, 48)
+else:
+    print(f"Font file not found at {font_path}, using default font.")
+    font = pygame.font.Font(None, 48)
 
 button_labels = ['BFS', 'A*', 'DFS', 'Greedy BFS', 'Iterative Deepening DFS', 'Bidirectional Search', 'Quit', 'Restart']
 button_functions = [bfs, a_star, dfs, greedy_bfs, iddfs, bidirectional_search, 'quit', 'restart']
@@ -166,9 +185,13 @@ def game_over_screen(message="Game Over!"):
     pygame.time.wait(1500)
     game_loop(Clock)
 
-def game_loop(clock):
-    global dragging, last_pos, current_algorithm
+def draw_score():
+    score_text = font.render(f"SCORE: {score:03d}", True, WHITE)
+    screen.blit(score_text, (SCREEN_SIZE - 260, 20))
 
+def game_loop(clock):
+    global dragging, last_pos, current_algorithm, food, score
+    screen.blit(background_image, (0, 0))
     dragging = False
     running = True
     snake = [(10, 10)]
@@ -178,10 +201,10 @@ def game_loop(clock):
     previous_path = []
     enumerate_buttons()
 
+
     while running:
         current_algorithm = button_labels[button_functions.index(algorithm)]
         highlight_current_algorithm()
-        screen.fill(BLACK)
         draw_grid()
         draw_snake(snake)
         draw_food(food)
@@ -203,6 +226,7 @@ def game_loop(clock):
 
             snake.append(next_move)
             if next_move == food:
+                score += 10
                 food = (random.randint(0, GRID_SIZE - 1), random.randint(0, GRID_SIZE - 1))
                 while food in obstacles or food in snake:
                     food = (random.randint(0, GRID_SIZE - 1), random.randint(0, GRID_SIZE - 1))
@@ -212,6 +236,8 @@ def game_loop(clock):
             game_over_screen("Game Over: No path to food!")
             pygame.display.flip()
             pygame.time.wait(2000)
+
+        draw_score()
 
         time_delta = clock.tick(60) / 1000.0
 
