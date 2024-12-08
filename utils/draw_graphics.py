@@ -18,7 +18,7 @@ current_algorithm = None
 
 # Try loading the background image with error handling
 try:
-    background_image = pygame.image.load("back.png")  # Adjust this path
+    background_image = pygame.image.load("assets/back.png")  # Adjust this path
     background_image = pygame.transform.scale(background_image, (SCREEN_SIZE + 800, SCREEN_SIZE + 200))  # Scale to fit window size
 except pygame.error as e:
     print(f"Error loading background image: {e}")
@@ -30,7 +30,7 @@ pygame.init()
 manager = pygame_gui.UIManager((SCREEN_SIZE + 800, SCREEN_SIZE + 200))  # Updated window size
 
 # Font for the score display
-font_path = "Pixelify_Sans/PixelifySans-VariableFont_wght.ttf"
+font_path = "assets/PixelifySans-VariableFont_wght.ttf"
 if os.path.exists(font_path):
     font = pygame.font.Font(font_path, 48)
 else:
