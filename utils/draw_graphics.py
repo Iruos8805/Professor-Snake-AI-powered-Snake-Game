@@ -4,26 +4,41 @@ import os
 import random
 from .config_constants import *
 from .snake_algorithms import *
+import os
 
-# Increase window size for more space
-screen = pygame.display.set_mode((SCREEN_SIZE + 800, SCREEN_SIZE + 200))  # Increased width
+screen = pygame.display.set_mode((SCREEN_SIZE + 800, SCREEN_SIZE + 200))
+
 Clock = pygame.time.Clock()
 apple = pygame.image.load("assets/apple.png").convert_alpha()
 stone = pygame.image.load("assets/stone.png").convert_alpha()
 
-# Define constants
+screen = pygame.display.set_mode((SCREEN_SIZE + 800, SCREEN_SIZE + 200))
+
 GRID_WIDTH = GRID_SIZE * CELL_SIZE
 GRID_HEIGHT = GRID_SIZE * CELL_SIZE
 current_algorithm = None
+score = 0
+score_label = None
 
-# Try loading the background image with error handling
+
+pygame.init()
+manager = pygame_gui.UIManager((SCREEN_SIZE + 800, SCREEN_SIZE + 200), 'utils/theme.json')
+
 try:
-    background_image = pygame.image.load("assets/back.png")  # Adjust this path
-    background_image = pygame.transform.scale(background_image, (SCREEN_SIZE + 800, SCREEN_SIZE + 200))  # Scale to fit window size
+    background_image = pygame.image.load("back.png")
+    background_image = pygame.transform.scale(background_image, (SCREEN_SIZE + 800, SCREEN_SIZE + 200))
 except pygame.error as e:
     print(f"Error loading background image: {e}")
     background_image = pygame.Surface((SCREEN_SIZE + 800, SCREEN_SIZE + 200))  
-    background_image.fill((0, 0, 0))  # Fallback
+    background_image.fill((0, 0, 0))
+
+font_path = "Pixelify_Sans/PixelifySans-VariableFont_wght.ttf"
+if os.path.exists(font_path):
+    font = pygame.font.Font(font_path, 48)
+else:
+    print(f"Font file not found at {font_path}, using default font.")
+    font = pygame.font.Font(None, 48)
+
 
 # Initialize Pygame and the GUI manager
 pygame.init()
@@ -48,6 +63,33 @@ buttons_per_row = 2
 start_x = SCREEN_SIZE + 220  # Padding from the right
 start_y = 100
 buttons = []
+
+body_br = pygame.image.load("assets/body_br.png").convert_alpha()
+body_bl = pygame.image.load("assets/body_bl.png").convert_alpha()
+body_tl = pygame.image.load("assets/body_tl.png").convert_alpha()
+body_tr = pygame.image.load("assets/body_tr.png").convert_alpha()
+
+body_horizontal = pygame.image.load("assets/body_horizontal.png").convert_alpha()
+body_vertical = pygame.image.load("assets/body_vertical.png").convert_alpha()
+
+head_up = pygame.image.load("assets/head_down.png").convert_alpha()
+head_right = pygame.image.load("assets/head_left.png").convert_alpha()
+head_left = pygame.image.load("assets/head_right.png").convert_alpha()
+head_down = pygame.image.load("assets/head_up.png").convert_alpha()
+
+tail_down = pygame.image.load("assets/tail_down.png").convert_alpha()
+tail_left = pygame.image.load("assets/tail_left.png").convert_alpha()
+tail_right = pygame.image.load("assets/tail_right.png").convert_alpha()
+tail_up = pygame.image.load("assets/tail_up.png").convert_alpha()
+
+START_X = GRID_WIDTH + 170
+
+def highlight_current_algorithm():
+    for button in buttons:
+        if button.text == current_algorithm:
+            button._set_active()
+        else:
+            button._set_inactive()
 
 # Initialize game variables
 score = 0
@@ -83,8 +125,9 @@ def draw_grid():
     grid_y = (SCREEN_SIZE + 200 - GRID_HEIGHT) // 2
     for y in range(GRID_SIZE):
         for x in range(GRID_SIZE):
-            pygame.draw.rect(screen, GRID_COLOR, (grid_x + x * CELL_SIZE, grid_y + y * CELL_SIZE, CELL_SIZE, CELL_SIZE))
-            pygame.draw.rect(screen, LINE_COLOR, (grid_x + x * CELL_SIZE, grid_y + y * CELL_SIZE, CELL_SIZE, CELL_SIZE), 1)
+
+            pygame.draw.rect(screen, GRID_COLOR, (GRID_OFFSET_X + x * CELL_SIZE, GRID_OFFSET_Y + y * CELL_SIZE, CELL_SIZE, CELL_SIZE))
+            pygame.draw.rect(screen, LINE_COLOR, (GRID_OFFSET_X + x * CELL_SIZE, GRID_OFFSET_Y + y * CELL_SIZE, CELL_SIZE, CELL_SIZE), 1)
 
 body_br = pygame.image.load("assets/body_br.png").convert_alpha()
 body_bl = pygame.image.load("assets/body_bl.png").convert_alpha()
@@ -103,6 +146,7 @@ tail_down = pygame.image.load("assets/tail_down.png").convert_alpha()
 tail_left = pygame.image.load("assets/tail_left.png").convert_alpha()
 tail_right = pygame.image.load("assets/tail_right.png").convert_alpha()
 tail_up = pygame.image.load("assets/tail_up.png").convert_alpha()
+
 
 def update_graphics(snake):
     if len(snake) < 2:
@@ -146,11 +190,11 @@ def draw_snake(snake):
     grid_y = (SCREEN_SIZE + 200 - GRID_HEIGHT) // 2
     
     for index, segment in enumerate(snake):
-        # Calculate the position based on the segment
-        x_pos = segment[1] * CELL_SIZE + grid_x
-        y_pos = segment[0] * CELL_SIZE + grid_y  # Ensure the Y position is directly aligned
-        
-        block_rect = pygame.Rect(x_pos, y_pos, CELL_SIZE, CELL_SIZE)
+
+        x_pos = int(segment[1] * CELL_SIZE)
+        y_pos = int(segment[0] * CELL_SIZE)
+        block_rect = pygame.Rect(GRID_OFFSET_X + x_pos, GRID_OFFSET_Y + y_pos, CELL_SIZE, CELL_SIZE)
+
         
         if index == 0:
             screen.blit(head, block_rect)  # Draw head
@@ -174,33 +218,39 @@ def draw_snake(snake):
                 elif (prev_direction[1] == 1 and next_direction[0] == 1) or (prev_direction[0] == 1 and next_direction[1] == 1):
                     screen.blit(body_bl, block_rect)  # Draw bottom-left corner body
                 elif (prev_direction[1] == 1 and next_direction[0] == -1) or (prev_direction[0] == -1 and next_direction[1] == 1):
-                    screen.blit(body_tl, block_rect)  # Draw top-left corner body
+
+                    screen.blit(body_tl, block_rect)
 
 
-# Function to draw food
 def draw_food(food):
     grid_x = 160
     grid_y = (SCREEN_SIZE + 200 - GRID_HEIGHT) // 2
     size = CELL_SIZE - 6 + (3 * (pygame.time.get_ticks() % 1000) // 500)
-    x, y = food[1] * CELL_SIZE + grid_x + 1, food[0] * CELL_SIZE + grid_y + 1
-    tup = (x, y, size, size)
-    screen.blit(apple, tup)
+
+    x, y = food[1] * CELL_SIZE + 1, food[0] * CELL_SIZE + 1
+    fruit_rect = (GRID_OFFSET_X + x, GRID_OFFSET_Y + y, size, size)
+    screen.blit(apple, fruit_rect)
+
 
 # Function to draw obstacles
 def draw_obstacles(obstacles):
     grid_x = 160
     grid_y = (SCREEN_SIZE + 200 - GRID_HEIGHT) // 2
     for obstacle in obstacles:
-        x, y = obstacle[1] * CELL_SIZE + grid_x, obstacle[0] * CELL_SIZE + grid_y
-        tup  =(x, y, CELL_SIZE, CELL_SIZE)
-        screen.blit(stone, tup)
-# Function to draw the path
+
+        x, y = obstacle[1] * CELL_SIZE, obstacle[0] * CELL_SIZE
+        stone_rect = (GRID_OFFSET_X + x, GRID_OFFSET_Y + y, CELL_SIZE, CELL_SIZE)
+        screen.blit(stone, stone_rect)
+
 def draw_path(path):
     grid_x = 160
     grid_y = (SCREEN_SIZE + 200 - GRID_HEIGHT) // 2
     if path:
-        for step in path[:-1]:
-            x, y = step[1] * CELL_SIZE + grid_x + 2, step[0] * CELL_SIZE + grid_y + 2
+
+        for step in path[1:-1]:
+            x = GRID_OFFSET_X + step[1] * CELL_SIZE + 2
+            y = GRID_OFFSET_Y + step[0] * CELL_SIZE + 2
+
             pygame.draw.rect(screen, YELLOW, (x, y, CELL_SIZE - 4, CELL_SIZE - 4), border_radius=4)
 
 # Function to draw the score
@@ -212,65 +262,81 @@ def draw_score():
 def game_over_screen(message="Game Over!"):
     screen.fill((30, 30, 30))
     text = font.render(message, True, RED)
-    text_rect = text.get_rect(center=(SCREEN_SIZE // 2, SCREEN_SIZE // 2))
+    text_rect = text.get_rect(center=(GRID_OFFSET_X + GRID_WIDTH // 2, GRID_OFFSET_Y + GRID_HEIGHT // 2))
     screen.blit(text, text_rect)
     pygame.display.flip()
     pygame.time.wait(1500)
     game_loop(Clock)
 
-# Function to automatically place food if none exists
-def place_food_if_needed():
-    global food
-    if food is None:
-        food = (random.randint(0, GRID_SIZE-1), random.randint(0, GRID_SIZE-1))
-        while food in obstacles:  # Ensure food doesn't spawn inside obstacles
-            food = (random.randint(0, GRID_SIZE-1), random.randint(0, GRID_SIZE-1))
 
-# Main game loop
+# Function to draw the score
+def draw_score():
+    score_text = font.render(f"SCORE: {score:03d}", True, WHITE)
+    
+    text_width, text_height = score_text.get_size()
+
+    padding = 20
+
+    score_rect = pygame.Rect(SCREEN_SIZE - text_width - padding, 20, text_width + 2 * padding, text_height + padding)
+
+    border_radius = 15
+    border_thickness = 3
+
+    pygame.draw.rect(screen, (0, 0, 0), score_rect, border_radius=border_radius)
+    
+    pygame.draw.rect(screen, (255, 0, 0), score_rect, border_radius=border_radius, width=border_thickness)
+
+    screen.blit(score_text, (SCREEN_SIZE - text_width - padding + padding, 20 + (padding // 2)))
+
+
 def game_loop(clock):
-    global dragging, last_pos, score, is_auto_mode, food  # Add 'food' to the global variables
+    global dragging, last_pos, current_algorithm, food, score
+
     screen.blit(background_image, (0, 0))
     dragging = False
     running = True
     snake = [(10, 10)]
+
+    food = (random.randint(0, GRID_SIZE - 1), random.randint(0, GRID_SIZE - 1))
+
     obstacles = set()
     algorithm = bfs
     previous_path = []
     enumerate_buttons()
 
+
     while running:
+        current_algorithm = button_labels[button_functions.index(algorithm)]
+        highlight_current_algorithm()
+
         screen.blit(background_image, (0, 0))
+
         draw_grid()
         draw_snake(snake)
         if food:  # Make sure food exists before drawing it
             draw_food(food)
         draw_obstacles(obstacles)
+        
+        snake_body = set(snake[:-1])
+        path = algorithm(snake[-1], food, obstacles | snake_body)
+        
+        if path != previous_path:
+            previous_path = path
+            draw_path(path)
 
-        # Handle game logic for automatic mode
-        if is_auto_mode:
-            place_food_if_needed()  # Ensure food is placed in auto mode
+        if path:
+            next_move = path[1]
+            if next_move in snake_body:
+                game_over_screen()
+                pygame.time.wait(1500)
+                continue
 
-            snake_body = set(snake[:-1])  # Exclude last segment (tail)
-            path = algorithm(snake[-1], food, obstacles | snake_body)
-
-            if path != previous_path:
-                previous_path = path
-                draw_path(path)
-
-            # Move the snake along the path
-            if path:
-                next_move = path[1]
-                if next_move in snake_body:
-                    game_over_screen()
-                    pygame.time.wait(1500)
-                    continue
-
-                snake.append(next_move)
-                if next_move == food:
-                    score += 10
-                    food = None  # Remove the food once eaten
-                else:
-                    snake.pop(0)
+            snake.append(next_move)
+            if next_move == food:
+                score += 10
+                food = (random.randint(0, GRID_SIZE - 1), random.randint(0, GRID_SIZE - 1))
+                while food in obstacles or food in snake:
+                    food = (random.randint(0, GRID_SIZE - 1), random.randint(0, GRID_SIZE - 1))
             else:
                 game_over_screen("Game Over: No path to food!")
                 pygame.display.flip()
@@ -296,11 +362,10 @@ def game_loop(clock):
                     pygame.display.flip()
                     pygame.time.wait(2000)
 
-        # Draw the score
         draw_score()
 
-        # Handle events and UI updates
-        time_delta = clock.tick(30) / 1000.0
+        time_delta = clock.tick(60) / 1000.0
+
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -328,9 +393,9 @@ def game_loop(clock):
                 if event.button == 1:
                     dragging = True
                     x, y = pygame.mouse.get_pos()
-                    grid_pos = (y // CELL_SIZE, x // CELL_SIZE)
+                    grid_pos = ((y - GRID_OFFSET_Y) // CELL_SIZE, (x - GRID_OFFSET_X) // CELL_SIZE)
                     if grid_pos not in snake and grid_pos != food:
-                        if grid_pos[0] < GRID_SIZE and grid_pos[1] < GRID_SIZE:
+                        if 0 <= grid_pos[0] < GRID_SIZE and 0 <= grid_pos[1] < GRID_SIZE:
                             obstacles.add(grid_pos)
                     last_pos = grid_pos
                 elif event.button == 3 and not is_auto_mode:
@@ -342,10 +407,10 @@ def game_loop(clock):
 
             elif event.type == pygame.MOUSEMOTION and dragging:
                 x, y = pygame.mouse.get_pos()
-                grid_pos = (y // CELL_SIZE, x // CELL_SIZE)
+                grid_pos = ((y - GRID_OFFSET_Y) // CELL_SIZE, (x - GRID_OFFSET_X) // CELL_SIZE)
                 if grid_pos != last_pos:
                     if grid_pos not in snake and grid_pos != food:
-                        if grid_pos[0] < GRID_SIZE and grid_pos[1] < GRID_SIZE:
+                        if 0 <= grid_pos[0] < GRID_SIZE and 0 <= grid_pos[1] < GRID_SIZE:
                             obstacles.add(grid_pos)
                             last_pos = grid_pos
 
@@ -359,8 +424,3 @@ def game_loop(clock):
         pygame.display.flip()
 
     pygame.quit()
-
-
-
-# Run the game loop
-game_loop(Clock)
