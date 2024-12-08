@@ -148,7 +148,7 @@ def bidirectional_search(start, goal, obstacles):
     visited_goal = set()
 
     while frontier_start and frontier_goal:
-        # Expand from start
+        
         current_start = frontier_start.pop()
         visited_start.add(current_start)
         for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
@@ -156,7 +156,7 @@ def bidirectional_search(start, goal, obstacles):
             if 0 <= neighbor[0] < GRID_SIZE and 0 <= neighbor[1] < GRID_SIZE and neighbor not in visited_start and neighbor not in obstacles:
                 parent_start[neighbor] = current_start
                 if neighbor in visited_goal:
-                    # Path found
+                    
                     path_start = []
                     path_goal = []
                     current = neighbor
@@ -171,7 +171,7 @@ def bidirectional_search(start, goal, obstacles):
 
                 frontier_start.add(neighbor)
 
-        # Expand from goal
+        
         current_goal = frontier_goal.pop()
         visited_goal.add(current_goal)
         for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
@@ -179,7 +179,7 @@ def bidirectional_search(start, goal, obstacles):
             if 0 <= neighbor[0] < GRID_SIZE and 0 <= neighbor[1] < GRID_SIZE and neighbor not in visited_goal and neighbor not in obstacles:
                 parent_goal[neighbor] = current_goal
                 if neighbor in visited_start:
-                    # Path found
+                    
                     path_start = []
                     path_goal = []
                     current = neighbor

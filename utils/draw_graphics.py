@@ -23,12 +23,12 @@ pygame.init()
 manager = pygame_gui.UIManager((SCREEN_SIZE + 800, SCREEN_SIZE + 200), 'utils/theme.json')
 
 try:
-    background_image = pygame.image.load("back.png")  # Adjust this path
-    background_image = pygame.transform.scale(background_image, (SCREEN_SIZE + 800, SCREEN_SIZE + 200))  # Scale to fit window size
+    background_image = pygame.image.load("back.png")
+    background_image = pygame.transform.scale(background_image, (SCREEN_SIZE + 800, SCREEN_SIZE + 200))
 except pygame.error as e:
     print(f"Error loading background image: {e}")
     background_image = pygame.Surface((SCREEN_SIZE + 800, SCREEN_SIZE + 200))  
-    background_image.fill((0, 0, 0))  # Fallback
+    background_image.fill((0, 0, 0))
 
 font_path = "Pixelify_Sans/PixelifySans-VariableFont_wght.ttf"
 if os.path.exists(font_path):
@@ -185,9 +185,25 @@ def game_over_screen(message="Game Over!"):
     pygame.time.wait(1500)
     game_loop(Clock)
 
+# Function to draw the score
 def draw_score():
     score_text = font.render(f"SCORE: {score:03d}", True, WHITE)
-    screen.blit(score_text, (SCREEN_SIZE - 260, 20))
+    
+    text_width, text_height = score_text.get_size()
+
+    padding = 20
+
+    score_rect = pygame.Rect(SCREEN_SIZE - text_width - padding, 20, text_width + 2 * padding, text_height + padding)
+
+    border_radius = 15
+    border_thickness = 3
+
+    pygame.draw.rect(screen, (0, 0, 0), score_rect, border_radius=border_radius)
+    
+    pygame.draw.rect(screen, (255, 0, 0), score_rect, border_radius=border_radius, width=border_thickness)
+
+    screen.blit(score_text, (SCREEN_SIZE - text_width - padding + padding, 20 + (padding // 2)))
+
 
 def game_loop(clock):
     global dragging, last_pos, current_algorithm, food, score
