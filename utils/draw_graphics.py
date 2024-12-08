@@ -11,36 +11,38 @@ Clock = pygame.time.Clock()
 screen = pygame.display.set_mode((SCREEN_SIZE + 400, SCREEN_SIZE + 200))
 GRID_WIDTH = GRID_SIZE * CELL_SIZE
 GRID_HEIGHT = GRID_SIZE * CELL_SIZE
+current_algorithm = None
 
 pygame.init()
-manager = pygame_gui.UIManager((SCREEN_SIZE + 400, SCREEN_SIZE + 200))
+manager = pygame_gui.UIManager((SCREEN_SIZE + 400, SCREEN_SIZE + 200), 'utils/theme.json')
 
 button_labels = ['BFS', 'A*', 'DFS', 'Greedy BFS', 'Iterative Deepening DFS', 'Bidirectional Search', 'Quit', 'Restart']
 button_functions = [bfs, a_star, dfs, greedy_bfs, iddfs, bidirectional_search, 'quit', 'restart']
-
-button_width = 180
-button_height = 50
-button_margin = 10
-buttons_per_row = 3
-start_x = GRID_WIDTH + 20
-start_y = 20  
 buttons = []
-buttons_per_row = 2
+
+START_X = GRID_WIDTH + 15
+
+def highlight_current_algorithm():
+    for button in buttons:
+        if button.text == current_algorithm:
+            button._set_active()
+        else:
+            button._set_inactive()
 
 def enumerate_buttons():
     for i, label in enumerate(button_labels):
-        col = i % buttons_per_row
-        row = i // buttons_per_row
-        button_x = start_x + col * (button_width + button_margin)
-        button_y = start_y + row * (button_height + button_margin)
+        col = i % BUTTONS_PER_ROW
+        row = i // BUTTONS_PER_ROW
+        button_x = START_X + col * (BUTTON_WIDTH + BUTTON_MARGIN)
+        button_y = START_Y + row * (BUTTON_HEIGHT + BUTTON_MARGIN)
 
-        buttons.append(
-            pygame_gui.elements.UIButton(
-                relative_rect=pygame.Rect((button_x, button_y), (button_width, button_height)),
-                text=label,
-                manager=manager
-            )
+        button = pygame_gui.elements.UIButton(
+            relative_rect=pygame.Rect((button_x, button_y), (BUTTON_WIDTH, BUTTON_HEIGHT)),
+            text=label,
+            manager=manager,
+            object_id=f"#button"
         )
+        buttons.append(button)
 
 def draw_grid():
     for y in range(GRID_SIZE):
@@ -68,7 +70,7 @@ def draw_obstacles(obstacles):
 
 def draw_path(path):
     if path:
-        for step in path[:-1]:
+        for step in path[1:-1]:
             x, y = step[1] * CELL_SIZE + 2, step[0] * CELL_SIZE + 2
             pygame.draw.rect(screen, YELLOW, (x, y, CELL_SIZE - 4, CELL_SIZE - 4), border_radius=4)
 
@@ -83,7 +85,7 @@ def game_over_screen(message="Game Over!"):
     game_loop(Clock)
     
 def game_loop(clock):
-    global dragging, last_pos
+    global dragging, last_pos, current_algorithm
 
     dragging = False
     running = True
@@ -95,6 +97,8 @@ def game_loop(clock):
     enumerate_buttons()
 
     while running:
+        current_algorithm = button_labels[button_functions.index(algorithm)]
+        highlight_current_algorithm()
         screen.fill(BLACK)
         draw_grid()
         draw_snake(snake)
@@ -141,7 +145,7 @@ def game_loop(clock):
                 if clicked_function == 'quit':
                     exit()
                 elif clicked_function == 'restart':
-                    game_loop(clock)
+                    return game_loop(clock)
                 else:
                     algorithm = clicked_function
                     previous_path = []  
