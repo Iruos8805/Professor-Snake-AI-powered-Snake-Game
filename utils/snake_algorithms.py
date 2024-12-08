@@ -137,11 +137,9 @@ def iddfs(start, goal, obstacles):
 
 
 def bidirectional_search(start, goal, obstacles):
-    # If start and goal are the same, return the path immediately
     if start == goal:
         return [start]
 
-    # Initialize frontiers, parents, and visited sets
     frontier_start = {start}
     frontier_goal = {goal}
     parent_start = {start: None}
@@ -149,7 +147,8 @@ def bidirectional_search(start, goal, obstacles):
     visited_start = set()
     visited_goal = set()
 
-    while frontier_start and frontier_goal:    
+    while frontier_start and frontier_goal:
+        
         current_start = frontier_start.pop()
         visited_start.add(current_start)
         for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
@@ -195,6 +194,5 @@ def bidirectional_search(start, goal, obstacles):
 
                 frontier_goal.add(neighbor)
     return None
-
 
 
