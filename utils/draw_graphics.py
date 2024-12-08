@@ -1,4 +1,5 @@
 import pygame
+import pygame_gui
 from .config_constants import *
 import random
 from .snake_algorithms import *
@@ -7,8 +8,39 @@ screen = pygame.display.set_mode((SCREEN_SIZE + 400, SCREEN_SIZE + 200))
 
 Clock = pygame.time.Clock()
 
-button_labels = ['BFS', 'A*', 'DFS', 'Greedy BFS', 'Iterative Deepening DFS', 'Bidirectional Search' 'Quit', 'Restart',]
-button_functions = ['bfs', 'a_star', 'dfs', 'g_bfs', 'i_d_dfs', 'bi_search', 'quit', 'restart']
+screen = pygame.display.set_mode((SCREEN_SIZE + 400, SCREEN_SIZE + 200))
+GRID_WIDTH = GRID_SIZE * CELL_SIZE
+GRID_HEIGHT = GRID_SIZE * CELL_SIZE
+
+pygame.init()
+manager = pygame_gui.UIManager((SCREEN_SIZE + 400, SCREEN_SIZE + 200))
+
+button_labels = ['BFS', 'A*', 'DFS', 'Greedy BFS', 'Iterative Deepening DFS', 'Bidirectional Search', 'Quit', 'Restart']
+button_functions = [bfs, a_star, dfs, greedy_bfs, iddfs, bidirectional_search, 'quit', 'restart']
+
+button_width = 180
+button_height = 50
+button_margin = 10
+buttons_per_row = 3
+start_x = GRID_WIDTH + 20
+start_y = 20  
+buttons = []
+buttons_per_row = 2
+
+def enumerate_buttons():
+    for i, label in enumerate(button_labels):
+        col = i % buttons_per_row
+        row = i // buttons_per_row
+        button_x = start_x + col * (button_width + button_margin)
+        button_y = start_y + row * (button_height + button_margin)
+
+        buttons.append(
+            pygame_gui.elements.UIButton(
+                relative_rect=pygame.Rect((button_x, button_y), (button_width, button_height)),
+                text=label,
+                manager=manager
+            )
+        )
 
 def draw_grid():
     for y in range(GRID_SIZE):
@@ -50,48 +82,6 @@ def game_over_screen(message="Game Over!"):
     pygame.time.wait(1500)
     game_loop(Clock)
     
-
-def draw_buttons():
-    font = pygame.font.Font(None, 24)
-    button_y = SCREEN_SIZE + BUTTON_MARGIN
-    for i, label in enumerate(button_labels):
-        button_x = BUTTON_MARGIN + i * (BUTTON_WIDTH + BUTTON_MARGIN)
-        # Draw button
-        pygame.draw.rect(screen, BUTTON_COLOR, (button_x, button_y, BUTTON_WIDTH, BUTTON_HEIGHT))
-        pygame.draw.rect(screen, BUTTON_BORDER_COLOR, (button_x, button_y, BUTTON_WIDTH, BUTTON_HEIGHT), 2)
-
-        # Wrap text if it's too wide
-        wrapped_lines = []
-        words = label.split()
-        current_line = ""
-        for word in words:
-            test_line = f"{current_line} {word}".strip()
-            if font.size(test_line)[0] <= BUTTON_WIDTH - 10:  # Account for padding
-                current_line = test_line
-            else:
-                wrapped_lines.append(current_line)
-                current_line = word
-        if current_line:
-            wrapped_lines.append(current_line)
-
-        # Render each line of text
-        for j, line in enumerate(wrapped_lines[:2]):  # Show at most 2 lines
-            text = font.render(line, True, BUTTON_TEXT_COLOR)
-            text_x = button_x + BUTTON_WIDTH // 2 - text.get_width() // 2
-            text_y = button_y + BUTTON_HEIGHT // 2 - text.get_height() * len(wrapped_lines) // 2 + j * text.get_height()
-            screen.blit(text, (text_x, text_y))
-
-def handle_button_click(mouse_pos):
-    button_y = SCREEN_SIZE + BUTTON_MARGIN
-    for i, function_name in enumerate(button_functions):
-        button_x = BUTTON_MARGIN + i * (BUTTON_WIDTH + BUTTON_MARGIN)
-        button_rect = pygame.Rect(button_x, button_y, BUTTON_WIDTH, BUTTON_HEIGHT)
-        if button_rect.collidepoint(mouse_pos):
-            return function_name
-    return None
-
-
-
 def game_loop(clock):
     global dragging, last_pos
 
@@ -102,11 +92,11 @@ def game_loop(clock):
     obstacles = set()
     algorithm = bfs
     previous_path = []
+    enumerate_buttons()
 
     while running:
         screen.fill(BLACK)
         draw_grid()
-        draw_buttons()
         draw_snake(snake)
         draw_food(food)
         draw_obstacles(obstacles)
@@ -137,36 +127,36 @@ def game_loop(clock):
             pygame.display.flip()
             pygame.time.wait(2000)
 
+        time_delta = clock.tick(60) / 1000.0
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+
+            manager.process_events(event)
+            if event.type == pygame_gui.UI_BUTTON_PRESSED:
+                button_index = buttons.index(event.ui_element)
+                clicked_function = button_functions[button_index]
+
+                if clicked_function == 'quit':
+                    exit()
+                elif clicked_function == 'restart':
+                    game_loop(clock)
+                else:
+                    algorithm = clicked_function
+                    previous_path = []  
+                    path = algorithm(snake[-1], food, obstacles | set(snake[:-1]))
+                    draw_path(path)  
+
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:
-                    clicked_function = handle_button_click(event.pos)
-                    if clicked_function == 'bfs':
-                        algorithm = bfs
-                    elif clicked_function == 'a_star':
-                        algorithm = a_star
-                    elif clicked_function == 'dfs':
-                        algorithm = dfs
-                    elif clicked_function == 'g_bfs':
-                        algorithm = greedy_bfs
-                    elif clicked_function == 'i_d_bfs':
-                        algorithm = iddfs
-                    elif clicked_function == 'bi_search':
-                        algorithm = bidirectional_search
-                    elif clicked_function == 'quit':
-                        running = False
-                    elif clicked_function == 'restart':
-                        game_loop(Clock)
-                    else:
-                        dragging = True
-                        x, y = pygame.mouse.get_pos()
-                        grid_pos = (y // CELL_SIZE, x // CELL_SIZE)
-                        if grid_pos not in snake and grid_pos != food:
-                            if grid_pos[0] < GRID_SIZE and grid_pos[1] < GRID_SIZE:
-                                obstacles.add(grid_pos)
-                        last_pos = grid_pos
+                    dragging = True
+                    x, y = pygame.mouse.get_pos()
+                    grid_pos = (y // CELL_SIZE, x // CELL_SIZE)
+                    if grid_pos not in snake and grid_pos != food:
+                        if grid_pos[0] < GRID_SIZE and grid_pos[1] < GRID_SIZE:
+                            obstacles.add(grid_pos)
+                    last_pos = grid_pos
 
             elif event.type == pygame.MOUSEMOTION and dragging:
                 x, y = pygame.mouse.get_pos()
@@ -182,6 +172,8 @@ def game_loop(clock):
                     dragging = False
                     last_pos = None
 
+        manager.update(time_delta)
+        manager.draw_ui(screen)
         pygame.display.flip()
         clock.tick(10)
 
