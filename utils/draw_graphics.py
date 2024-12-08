@@ -7,8 +7,8 @@ screen = pygame.display.set_mode((SCREEN_SIZE + 400, SCREEN_SIZE + 200))
 
 Clock = pygame.time.Clock()
 
-button_labels = ['BFS', 'A*', 'DFS', 'Quit', 'Restart']
-button_functions = ['bfs', 'a_star', 'dfs', 'quit', 'restart']
+button_labels = ['BFS', 'A*', 'DFS', 'Greedy BFS', 'Iterative Deepening DFS', 'Bidirectional Search' 'Quit', 'Restart',]
+button_functions = ['bfs', 'a_star', 'dfs', 'g_bfs', 'i_d_dfs', 'bi_search', 'quit', 'restart']
 
 def draw_grid():
     for y in range(GRID_SIZE):
@@ -40,17 +40,6 @@ def draw_path(path):
             x, y = step[1] * CELL_SIZE + 2, step[0] * CELL_SIZE + 2
             pygame.draw.rect(screen, YELLOW, (x, y, CELL_SIZE - 4, CELL_SIZE - 4), border_radius=4)
 
-def draw_instructions():
-    font = pygame.font.Font(pygame.font.match_font('comicsansms'), 18)
-    instructions = [
-        "Press 'B' for BFS, 'A' for A*, 'D' for DFS.",
-        "Click to place obstacles.",
-        "Press 'Q' to quit or 'R' to restart after game over."
-    ]
-    for i, instruction in enumerate(instructions):
-        text = font.render(instruction, True, WHITE)
-        screen.blit(text, (SCREEN_SIZE + 20, 30 + i * 30))
-
 def game_over_screen(message="Game Over!"):
     screen.fill((30, 30, 30))
     font = pygame.font.Font(None, 50)
@@ -67,10 +56,30 @@ def draw_buttons():
     button_y = SCREEN_SIZE + BUTTON_MARGIN
     for i, label in enumerate(button_labels):
         button_x = BUTTON_MARGIN + i * (BUTTON_WIDTH + BUTTON_MARGIN)
+        # Draw button
         pygame.draw.rect(screen, BUTTON_COLOR, (button_x, button_y, BUTTON_WIDTH, BUTTON_HEIGHT))
         pygame.draw.rect(screen, BUTTON_BORDER_COLOR, (button_x, button_y, BUTTON_WIDTH, BUTTON_HEIGHT), 2)
-        text = font.render(label, True, BUTTON_TEXT_COLOR)
-        screen.blit(text, (button_x + BUTTON_WIDTH // 2 - text.get_width() // 2, button_y + BUTTON_HEIGHT // 2 - text.get_height() // 2))
+
+        # Wrap text if it's too wide
+        wrapped_lines = []
+        words = label.split()
+        current_line = ""
+        for word in words:
+            test_line = f"{current_line} {word}".strip()
+            if font.size(test_line)[0] <= BUTTON_WIDTH - 10:  # Account for padding
+                current_line = test_line
+            else:
+                wrapped_lines.append(current_line)
+                current_line = word
+        if current_line:
+            wrapped_lines.append(current_line)
+
+        # Render each line of text
+        for j, line in enumerate(wrapped_lines[:2]):  # Show at most 2 lines
+            text = font.render(line, True, BUTTON_TEXT_COLOR)
+            text_x = button_x + BUTTON_WIDTH // 2 - text.get_width() // 2
+            text_y = button_y + BUTTON_HEIGHT // 2 - text.get_height() * len(wrapped_lines) // 2 + j * text.get_height()
+            screen.blit(text, (text_x, text_y))
 
 def handle_button_click(mouse_pos):
     button_y = SCREEN_SIZE + BUTTON_MARGIN
@@ -101,7 +110,6 @@ def game_loop(clock):
         draw_snake(snake)
         draw_food(food)
         draw_obstacles(obstacles)
-        draw_instructions()
 
         snake_body = set(snake[:-1])
         path = algorithm(snake[-1], food, obstacles | snake_body)
@@ -141,10 +149,16 @@ def game_loop(clock):
                         algorithm = a_star
                     elif clicked_function == 'dfs':
                         algorithm = dfs
+                    elif clicked_function == 'g_bfs':
+                        algorithm = greedy_bfs
+                    elif clicked_function == 'i_d_bfs':
+                        algorithm = iddfs
+                    elif clicked_function == 'bi_search':
+                        algorithm = bidirectional_search
                     elif clicked_function == 'quit':
                         running = False
                     elif clicked_function == 'restart':
-                        game_loop()
+                        game_loop(Clock)
                     else:
                         dragging = True
                         x, y = pygame.mouse.get_pos()
