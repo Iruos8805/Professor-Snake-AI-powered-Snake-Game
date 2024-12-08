@@ -137,9 +137,11 @@ def iddfs(start, goal, obstacles):
 
 
 def bidirectional_search(start, goal, obstacles):
+    # If start and goal are the same, return the path immediately
     if start == goal:
         return [start]
 
+    # Initialize frontiers, parents, and visited sets
     frontier_start = {start}
     frontier_goal = {goal}
     parent_start = {start: None}
@@ -148,51 +150,56 @@ def bidirectional_search(start, goal, obstacles):
     visited_goal = set()
 
     while frontier_start and frontier_goal:
-        # Expand from start
-        current_start = frontier_start.pop()
-        visited_start.add(current_start)
-        for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
-            neighbor = (current_start[0] + dx, current_start[1] + dy)
-            if 0 <= neighbor[0] < GRID_SIZE and 0 <= neighbor[1] < GRID_SIZE and neighbor not in visited_start and neighbor not in obstacles:
-                parent_start[neighbor] = current_start
-                if neighbor in visited_goal:
-                    # Path found
-                    path_start = []
-                    path_goal = []
-                    current = neighbor
-                    while current:
-                        path_start.append(current)
-                        current = parent_start[current]
-                    current = neighbor
-                    while current:
-                        path_goal.append(current)
-                        current = parent_goal[current]
-                    return path_start[::-1] + path_goal[1:]
+        # Expand from the start frontier
+        if frontier_start:  # Check if frontier_start is non-empty
+            current_start = frontier_start.pop()
+            visited_start.add(current_start)
+            for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+                neighbor = (current_start[0] + dx, current_start[1] + dy)
+                if 0 <= neighbor[0] < GRID_SIZE and 0 <= neighbor[1] < GRID_SIZE and neighbor not in visited_start and neighbor not in obstacles:
+                    parent_start[neighbor] = current_start
+                    if neighbor in visited_goal:
+                        # Path found from start to goal
+                        path_start = []
+                        path_goal = []
+                        current = neighbor
+                        while current:
+                            path_start.append(current)
+                            current = parent_start[current]
+                        current = neighbor
+                        while current:
+                            path_goal.append(current)
+                            current = parent_goal[current]
+                        return path_start[::-1] + path_goal[1:]
 
-                frontier_start.add(neighbor)
+                    frontier_start.add(neighbor)
 
-        # Expand from goal
-        current_goal = frontier_goal.pop()
-        visited_goal.add(current_goal)
-        for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
-            neighbor = (current_goal[0] + dx, current_goal[1] + dy)
-            if 0 <= neighbor[0] < GRID_SIZE and 0 <= neighbor[1] < GRID_SIZE and neighbor not in visited_goal and neighbor not in obstacles:
-                parent_goal[neighbor] = current_goal
-                if neighbor in visited_start:
-                    # Path found
-                    path_start = []
-                    path_goal = []
-                    current = neighbor
-                    while current:
-                        path_start.append(current)
-                        current = parent_start[current]
-                    current = neighbor
-                    while current:
-                        path_goal.append(current)
-                        current = parent_goal[current]
-                    return path_start[::-1] + path_goal[1:]
+        # Expand from the goal frontier
+        if frontier_goal:  # Check if frontier_goal is non-empty
+            current_goal = frontier_goal.pop()
+            visited_goal.add(current_goal)
+            for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+                neighbor = (current_goal[0] + dx, current_goal[1] + dy)
+                if 0 <= neighbor[0] < GRID_SIZE and 0 <= neighbor[1] < GRID_SIZE and neighbor not in visited_goal and neighbor not in obstacles:
+                    parent_goal[neighbor] = current_goal
+                    if neighbor in visited_start:
+                        # Path found from goal to start
+                        path_start = []
+                        path_goal = []
+                        current = neighbor
+                        while current:
+                            path_start.append(current)
+                            current = parent_start[current]
+                        current = neighbor
+                        while current:
+                            path_goal.append(current)
+                            current = parent_goal[current]
+                        return path_start[::-1] + path_goal[1:]
 
-                frontier_goal.add(neighbor)
+                    frontier_goal.add(neighbor)
+
+    # If no path is found, return None
     return None
+
 
 
