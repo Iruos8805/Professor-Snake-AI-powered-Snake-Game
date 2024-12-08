@@ -4,25 +4,25 @@ from .config_constants import *
 import random
 from .snake_algorithms import *
 
-screen = pygame.display.set_mode((SCREEN_SIZE + 400, SCREEN_SIZE + 200))
+screen = pygame.display.set_mode((SCREEN_SIZE + 800, SCREEN_SIZE + 200))
 
 Clock = pygame.time.Clock()
 apple = pygame.image.load("assets/apple.png").convert_alpha()
 stone = pygame.image.load("assets/stone.png").convert_alpha()
 
-screen = pygame.display.set_mode((SCREEN_SIZE + 400, SCREEN_SIZE + 200))
+screen = pygame.display.set_mode((SCREEN_SIZE + 800, SCREEN_SIZE + 200))
 GRID_WIDTH = GRID_SIZE * CELL_SIZE
 GRID_HEIGHT = GRID_SIZE * CELL_SIZE
 current_algorithm = None
 
 pygame.init()
-manager = pygame_gui.UIManager((SCREEN_SIZE + 400, SCREEN_SIZE + 200), 'utils/theme.json')
+manager = pygame_gui.UIManager((SCREEN_SIZE + 800, SCREEN_SIZE + 200), 'utils/theme.json')
 
 button_labels = ['BFS', 'A*', 'DFS', 'Greedy BFS', 'Iterative Deepening DFS', 'Bidirectional Search', 'Quit', 'Restart']
 button_functions = [bfs, a_star, dfs, greedy_bfs, iddfs, bidirectional_search, 'quit', 'restart']
 buttons = []
 
-START_X = GRID_WIDTH + 15
+START_X = GRID_WIDTH + 170
 
 def highlight_current_algorithm():
     for button in buttons:
@@ -157,26 +157,27 @@ def draw_obstacles(obstacles):
 def draw_path(path):
     if path:
         for step in path[1:-1]:
-            x, y = step[1] * CELL_SIZE + 2, step[0] * CELL_SIZE + 2
+            x = GRID_OFFSET_X + step[1] * CELL_SIZE + 2
+            y = GRID_OFFSET_Y + step[0] * CELL_SIZE + 2
             pygame.draw.rect(screen, YELLOW, (x, y, CELL_SIZE - 4, CELL_SIZE - 4), border_radius=4)
 
 def game_over_screen(message="Game Over!"):
     screen.fill((30, 30, 30))
     font = pygame.font.Font(None, 50)
     text = font.render(message, True, RED)
-    text_rect = text.get_rect(center=(SCREEN_SIZE // 2, SCREEN_SIZE // 2))
+    text_rect = text.get_rect(center=(GRID_OFFSET_X + GRID_WIDTH // 2, GRID_OFFSET_Y + GRID_HEIGHT // 2))
     screen.blit(text, text_rect)
     pygame.display.flip()
     pygame.time.wait(1500)
     game_loop(Clock)
-    
+
 def game_loop(clock):
     global dragging, last_pos, current_algorithm
 
     dragging = False
     running = True
     snake = [(10, 10)]
-    food = (random.randint(0, GRID_SIZE-1), random.randint(0, GRID_SIZE-1))
+    food = (random.randint(0, GRID_SIZE - 1), random.randint(0, GRID_SIZE - 1))
     obstacles = set()
     algorithm = bfs
     previous_path = []
@@ -207,9 +208,9 @@ def game_loop(clock):
 
             snake.append(next_move)
             if next_move == food:
-                food = (random.randint(0, GRID_SIZE-1), random.randint(0, GRID_SIZE-1))
+                food = (random.randint(0, GRID_SIZE - 1), random.randint(0, GRID_SIZE - 1))
                 while food in obstacles or food in snake:
-                    food = (random.randint(0, GRID_SIZE-1), random.randint(0, GRID_SIZE-1))
+                    food = (random.randint(0, GRID_SIZE - 1), random.randint(0, GRID_SIZE - 1))
             else:
                 snake.pop(0)
         else:
@@ -242,18 +243,18 @@ def game_loop(clock):
                 if event.button == 1:
                     dragging = True
                     x, y = pygame.mouse.get_pos()
-                    grid_pos = (y // CELL_SIZE, x // CELL_SIZE)
+                    grid_pos = ((y - GRID_OFFSET_Y) // CELL_SIZE, (x - GRID_OFFSET_X) // CELL_SIZE)
                     if grid_pos not in snake and grid_pos != food:
-                        if grid_pos[0] < GRID_SIZE and grid_pos[1] < GRID_SIZE:
+                        if 0 <= grid_pos[0] < GRID_SIZE and 0 <= grid_pos[1] < GRID_SIZE:
                             obstacles.add(grid_pos)
                     last_pos = grid_pos
 
             elif event.type == pygame.MOUSEMOTION and dragging:
                 x, y = pygame.mouse.get_pos()
-                grid_pos = (y // CELL_SIZE, x // CELL_SIZE)
+                grid_pos = ((y - GRID_OFFSET_Y) // CELL_SIZE, (x - GRID_OFFSET_X) // CELL_SIZE)
                 if grid_pos != last_pos:
                     if grid_pos not in snake and grid_pos != food:
-                        if grid_pos[0] < GRID_SIZE and grid_pos[1] < GRID_SIZE:
+                        if 0 <= grid_pos[0] < GRID_SIZE and 0 <= grid_pos[1] < GRID_SIZE:
                             obstacles.add(grid_pos)
                             last_pos = grid_pos
 
