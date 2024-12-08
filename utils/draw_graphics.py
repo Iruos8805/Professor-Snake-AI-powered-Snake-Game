@@ -7,6 +7,8 @@ from .snake_algorithms import *
 screen = pygame.display.set_mode((SCREEN_SIZE + 400, SCREEN_SIZE + 200))
 
 Clock = pygame.time.Clock()
+apple = pygame.image.load("assets/apple.png").convert_alpha()
+stone = pygame.image.load("assets/stone.png").convert_alpha()
 
 screen = pygame.display.set_mode((SCREEN_SIZE + 400, SCREEN_SIZE + 200))
 GRID_WIDTH = GRID_SIZE * CELL_SIZE
@@ -50,23 +52,107 @@ def draw_grid():
             pygame.draw.rect(screen, GRID_COLOR, (x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE))
             pygame.draw.rect(screen, LINE_COLOR, (x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE), 1)
 
+body_br = pygame.image.load("assets/body_br.png").convert_alpha()
+body_bl = pygame.image.load("assets/body_bl.png").convert_alpha()
+body_tl = pygame.image.load("assets/body_tl.png").convert_alpha()
+body_tr = pygame.image.load("assets/body_tr.png").convert_alpha()
+
+body_horizontal = pygame.image.load("assets/body_horizontal.png").convert_alpha()
+body_vertical = pygame.image.load("assets/body_vertical.png").convert_alpha()
+
+head_down = pygame.image.load("assets/head_down.png").convert_alpha()
+head_left = pygame.image.load("assets/head_left.png").convert_alpha()
+head_right = pygame.image.load("assets/head_right.png").convert_alpha()
+head_up = pygame.image.load("assets/head_up.png").convert_alpha()
+
+tail_down = pygame.image.load("assets/tail_down.png").convert_alpha()
+tail_left = pygame.image.load("assets/tail_left.png").convert_alpha()
+tail_right = pygame.image.load("assets/tail_right.png").convert_alpha()
+tail_up = pygame.image.load("assets/tail_up.png").convert_alpha()
+
+def update_graphics(snake):
+    if len(snake) < 2:
+        return head_right, tail_right
+
+    tail_relation = (snake[-1][0] - snake[-2][0], snake[-1][1] - snake[-2][1])
+    
+    if tail_relation == (0, 1): 
+        tail = head_left
+    elif tail_relation == (0, -1): 
+        tail = head_right
+    elif tail_relation == (1, 0): 
+        tail = head_up
+    elif tail_relation == (-1, 0): 
+        tail = head_down
+    else:
+        tail = head_right
+
+    head_relation = (snake[1][0] - snake[0][0], snake[1][1] - snake[0][1])
+
+    if head_relation == (0, 1):
+        head = tail_left
+    elif head_relation == (0, -1):
+        head = tail_right
+    elif head_relation == (1, 0):
+        head = tail_up
+    elif head_relation == (-1, 0):
+        head = tail_down
+    else:
+        head = tail_right
+
+    return head, tail
+
+
+
 def draw_snake(snake):
-    for i, segment in enumerate(snake):
-        color = SNAKE_COLOR if i != len(snake) - 1 else (0, 100, 0)
-        pygame.draw.rect(screen, color, (segment[1] * CELL_SIZE, segment[0] * CELL_SIZE, CELL_SIZE, CELL_SIZE))
-        pygame.draw.rect(screen, LINE_COLOR, (segment[1] * CELL_SIZE, segment[0] * CELL_SIZE, CELL_SIZE, CELL_SIZE), 1)
+    if not snake:
+        return
+        
+    head, tail = update_graphics(snake)
+    
+    for index, segment in enumerate(snake):
+        x_pos = int(segment[1] * CELL_SIZE)
+        y_pos = int(segment[0] * CELL_SIZE)
+        block_rect = pygame.Rect(x_pos, y_pos, CELL_SIZE, CELL_SIZE)
+        
+        if index == 0:
+            screen.blit(head, block_rect)
+        elif index == len(snake) - 1:
+            screen.blit(tail, block_rect)
+        elif len(snake) > 2:
+            previous_block = snake[index + 1]
+            next_block = snake[index - 1]
+            prev_direction = (segment[0] - previous_block[0], segment[1] - previous_block[1])
+            next_direction = (segment[0] - next_block[0], segment[1] - next_block[1])
+            
+            if prev_direction[1] == next_direction[1]:
+                screen.blit(body_vertical, block_rect)
+            elif prev_direction[0] == next_direction[0]:
+                screen.blit(body_horizontal, block_rect)
+            else:
+                if (prev_direction[1] == -1 and next_direction[0] == 1) or (prev_direction[0] == 1 and next_direction[1] == -1):
+                    screen.blit(body_br, block_rect)
+                elif (prev_direction[1] == -1 and next_direction[0] == -1) or (prev_direction[0] == -1 and next_direction[1] == -1):
+                    screen.blit(body_tr, block_rect)
+                elif (prev_direction[1] == 1 and next_direction[0] == 1) or (prev_direction[0] == 1 and next_direction[1] == 1):
+                    screen.blit(body_bl, block_rect)
+                elif (prev_direction[1] == 1 and next_direction[0] == -1) or (prev_direction[0] == -1 and next_direction[1] == 1):
+                    screen.blit(body_tl, block_rect)
+
+
 
 def draw_food(food):
     size = CELL_SIZE - 6 + (3 * (pygame.time.get_ticks() % 1000) // 500)
-    x, y = food[1] * CELL_SIZE + 3, food[0] * CELL_SIZE + 3
-    pygame.draw.ellipse(screen, RED, (x, y, size, size))
+    x, y = food[1] * CELL_SIZE + 1, food[0] * CELL_SIZE + 1
+    fruit_rect = (x, y, size, size)
+    screen.blit(apple, fruit_rect)
 
 def draw_obstacles(obstacles):
     for obstacle in obstacles:
         x, y = obstacle[1] * CELL_SIZE, obstacle[0] * CELL_SIZE
-        pygame.draw.rect(screen, OBSTACLE_TEXTURE, (x, y, CELL_SIZE, CELL_SIZE))
-        pygame.draw.line(screen, WHITE, (x, y), (x + CELL_SIZE, y + CELL_SIZE), 2)
-        pygame.draw.line(screen, WHITE, (x + CELL_SIZE, y), (x, y + CELL_SIZE), 2)
+        stone_rect = (x, y, CELL_SIZE, CELL_SIZE)
+        screen.blit(stone, stone_rect)
+
 
 def draw_path(path):
     if path:
