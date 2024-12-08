@@ -29,5 +29,5 @@ pip install -r requirements.txt
 ### Step 5: Run
 
 ```bash
-python snake.py
+python main.py
 ```
