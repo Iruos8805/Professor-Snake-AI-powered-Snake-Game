@@ -80,14 +80,17 @@ def a_star(start, goal, obstacles):
 
 def greedy_bfs(start, goal, obstacles):
     def heuristic(cell, goal):
-        return abs(cell[0] - goal[0]) + abs(cell[1] - goal[1]) 
+        # Manhattan distance as heuristic (you can change this based on your needs)
+        return abs(cell[0] - goal[0]) + abs(cell[1] - goal[1])
 
     open_set = []
+    # Initially push the start node with its heuristic value
     heapq.heappush(open_set, (heuristic(start, goal), start))
     visited = set()
     parent = {start: None}
 
     while open_set:
+        # Pop the node with the smallest heuristic value (greedy approach)
         _, current = heapq.heappop(open_set)
         if current == goal:
             path = []
@@ -102,7 +105,9 @@ def greedy_bfs(start, goal, obstacles):
             if 0 <= neighbor[0] < GRID_SIZE and 0 <= neighbor[1] < GRID_SIZE and neighbor not in visited and neighbor not in obstacles:
                 visited.add(neighbor)
                 parent[neighbor] = current
+                # Add the neighbor to the open set with its heuristic value
                 heapq.heappush(open_set, (heuristic(neighbor, goal), neighbor))
+
     return None
 
 
