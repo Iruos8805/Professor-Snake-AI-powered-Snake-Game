@@ -114,7 +114,7 @@ def game_loop(clock):
             next_move = path[1]
             if next_move in snake_body:
                 game_over_screen()
-                pygame.time.wait(3000)
+                pygame.time.wait(1500)
                 continue
 
             snake.append(next_move)
@@ -150,7 +150,8 @@ def game_loop(clock):
                         x, y = pygame.mouse.get_pos()
                         grid_pos = (y // CELL_SIZE, x // CELL_SIZE)
                         if grid_pos not in snake and grid_pos != food:
-                            obstacles.add(grid_pos)
+                            if grid_pos[0] < GRID_SIZE and grid_pos[1] < GRID_SIZE:
+                                obstacles.add(grid_pos)
                         last_pos = grid_pos
 
             elif event.type == pygame.MOUSEMOTION and dragging:
@@ -158,8 +159,9 @@ def game_loop(clock):
                 grid_pos = (y // CELL_SIZE, x // CELL_SIZE)
                 if grid_pos != last_pos:
                     if grid_pos not in snake and grid_pos != food:
-                        obstacles.add(grid_pos)
-                        last_pos = grid_pos
+                        if grid_pos[0] < GRID_SIZE and grid_pos[1] < GRID_SIZE:
+                            obstacles.add(grid_pos)
+                            last_pos = grid_pos
 
             elif event.type == pygame.MOUSEBUTTONUP:
                 if event.button == 1:
