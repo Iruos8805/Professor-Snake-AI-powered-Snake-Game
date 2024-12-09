@@ -23,7 +23,7 @@ pygame.init()
 manager = pygame_gui.UIManager((SCREEN_SIZE + 800, SCREEN_SIZE + 200), 'utils/theme.json')
 
 try:
-    background_image = pygame.image.load("back.png")
+    background_image = pygame.image.load("assets/back.png")
     background_image = pygame.transform.scale(background_image, (SCREEN_SIZE + 800, SCREEN_SIZE + 200))
 except pygame.error as e:
     print(f"Error loading background image: {e}")
@@ -59,7 +59,7 @@ tail_left = pygame.image.load("assets/tail_left.png").convert_alpha()
 tail_right = pygame.image.load("assets/tail_right.png").convert_alpha()
 tail_up = pygame.image.load("assets/tail_up.png").convert_alpha()
 
-START_X = GRID_WIDTH + 170
+START_X = GRID_WIDTH + 270
 
 def highlight_current_algorithm():
     for button in buttons:
@@ -185,29 +185,19 @@ def game_over_screen(message="Game Over!"):
     pygame.time.wait(1500)
     game_loop(Clock)
 
-# Function to draw the score
 def draw_score():
     score_text = font.render(f"SCORE: {score:03d}", True, WHITE)
-    
     text_width, text_height = score_text.get_size()
-
     padding = 20
-
     score_rect = pygame.Rect(SCREEN_SIZE - text_width - padding, 20, text_width + 2 * padding, text_height + padding)
-
     border_radius = 15
     border_thickness = 3
-
     pygame.draw.rect(screen, (0, 0, 0), score_rect, border_radius=border_radius)
-    
     pygame.draw.rect(screen, (255, 0, 0), score_rect, border_radius=border_radius, width=border_thickness)
-
     screen.blit(score_text, (SCREEN_SIZE - text_width - padding + padding, 20 + (padding // 2)))
-
 
 def game_loop(clock):
     global dragging, last_pos, current_algorithm, food, score
-    screen.blit(background_image, (0, 0))
     dragging = False
     running = True
     snake = [(10, 10)]
@@ -217,9 +207,9 @@ def game_loop(clock):
     previous_path = []
     enumerate_buttons()
 
-
     while running:
         current_algorithm = button_labels[button_functions.index(algorithm)]
+        screen.blit(background_image, (0, 0))
         highlight_current_algorithm()
         draw_grid()
         draw_snake(snake)
@@ -269,6 +259,7 @@ def game_loop(clock):
                 if clicked_function == 'quit':
                     exit()
                 elif clicked_function == 'restart':
+                    score = 0
                     return game_loop(clock)
                 else:
                     algorithm = clicked_function

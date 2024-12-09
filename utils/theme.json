@@ -1,21 +1,25 @@
 {
     "#button": {
         "colours": {
-            "normal_bg": "#000000",
-            "hovered_bg":"#000000",
-            "normal_border":"#BA263E",
-            "hovered_border":"#BA263E",
-            "active_bg":"#BA263E",
-            "active_border":"#BA263E"
+            "normal_text": "#000000",
+            "active_text": "#000000",
+            "hovered_text": "#000000"
         },
-        "misc": {
-            "shape": "rounded_rectangle",
-            "shape_corner_radius": "7"
+        "images":{
+            "normal_image": {
+                "path":"assets/Button/button_normal.png"
+            },
+            "selected_image": {
+                "path":"assets/Button/button_active.png"
+            }
         }
     },
     "#score_label": {
+        
         "font": {
-            "size":"36"
+            "name":"matrix",
+            "size":"24",
+            "regular_path": "assets/led_counter-7.ttf"
         }
     }
 }
