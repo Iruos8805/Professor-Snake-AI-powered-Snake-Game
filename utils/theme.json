@@ -1,0 +1,22 @@
+{
+    "#button": {
+        "colours": {
+            "normal_bg": "#000000",
+            "hovered_bg":"#000000",
+            "normal_border":"#BA263E",
+            "hovered_border":"#BA263E",
+            "active_bg":"#BA263E",
+            "active_border":"#BA263E"
+        },
+        "misc": {
+            "shape": "rounded_rectangle",
+            "shape_corner_radius": "7"
+        }
+    },
+    "#score_label": {
+        "font": {
+            "size":"36"
+        }
+    }
+}
+  
