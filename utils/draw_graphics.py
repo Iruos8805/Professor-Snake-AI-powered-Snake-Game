@@ -18,12 +18,11 @@ current_algorithm = None
 score = 0
 score_label = None
 
-
 pygame.init()
 manager = pygame_gui.UIManager((SCREEN_SIZE + 800, SCREEN_SIZE + 200), 'utils/theme.json')
 
 try:
-    background_image = pygame.image.load("back.png")
+    background_image = pygame.image.load("assets/back.png")
     background_image = pygame.transform.scale(background_image, (SCREEN_SIZE + 800, SCREEN_SIZE + 200))
 except pygame.error as e:
     print(f"Error loading background image: {e}")
@@ -59,7 +58,28 @@ tail_left = pygame.image.load("assets/tail_left.png").convert_alpha()
 tail_right = pygame.image.load("assets/tail_right.png").convert_alpha()
 tail_up = pygame.image.load("assets/tail_up.png").convert_alpha()
 
-START_X = GRID_WIDTH + 170
+START_X = GRID_WIDTH + 270
+
+def load_obstacles_from_file(file_path):
+    global obstacles
+    try:
+        with open(file_path, 'r') as f:
+            lines = f.readlines()
+
+        obstacles = set()
+
+        for row_idx, line in enumerate(lines):
+            line = line.strip()
+            for col_idx, char in enumerate(line):
+                if char == '#':
+                    if row_idx < GRID_SIZE and col_idx < GRID_SIZE:
+                        obstacles.add((row_idx, col_idx))
+                    else:
+                        print(f"Obstacle invalid!!")
+    except FileNotFoundError:
+        print(f"Error: File {file_path} not found.")
+    except Exception as e:
+        print(f"Error loading obstacles: {e}")
 
 def highlight_current_algorithm():
     for button in buttons:
@@ -187,20 +207,13 @@ def game_over_screen(message="Game Over!"):
 
 def draw_score():
     score_text = font.render(f"SCORE: {score:03d}", True, WHITE)
-    
     text_width, text_height = score_text.get_size()
-
     padding = 20
-
     score_rect = pygame.Rect(SCREEN_SIZE - text_width - padding, 20, text_width + 2 * padding, text_height + padding)
-
     border_radius = 15
     border_thickness = 3
-
     pygame.draw.rect(screen, (0, 0, 0), score_rect, border_radius=border_radius)
-    
     pygame.draw.rect(screen, (255, 0, 0), score_rect, border_radius=border_radius, width=border_thickness)
-
     screen.blit(score_text, (SCREEN_SIZE - text_width - padding + padding, 20 + (padding // 2)))
 
 algorithm_details = {
@@ -300,21 +313,24 @@ def draw_algorithm_info():
 
 
 
-def game_loop(clock):
-    global dragging, last_pos, current_algorithm, food, score
-    screen.blit(background_image, (0, 0))
+def game_loop(clock, obstacle_file=None):
+    global dragging, last_pos, current_algorithm, food, score, obstacles
     dragging = False
     running = True
     snake = [(10, 10)]
     food = (random.randint(0, GRID_SIZE - 1), random.randint(0, GRID_SIZE - 1))
     obstacles = set()
+
+    if obstacle_file:
+        load_obstacles_from_file(obstacle_file)
+
     algorithm = bfs
     previous_path = []
     enumerate_buttons()
 
-
     while running:
         current_algorithm = button_labels[button_functions.index(algorithm)]
+        screen.blit(background_image, (0, 0))
         highlight_current_algorithm()
         draw_grid()
         draw_snake(snake)
@@ -323,7 +339,7 @@ def game_loop(clock):
 
         snake_body = set(snake[:-1])
         path = algorithm(snake[-1], food, obstacles | snake_body)
-        
+
         if path != previous_path:
             previous_path = path
             draw_path(path)
@@ -366,12 +382,13 @@ def game_loop(clock):
                 if clicked_function == 'quit':
                     exit()
                 elif clicked_function == 'restart':
-                    return game_loop(clock)
+                    score = 0
+                    return game_loop(clock, obstacle_file)
                 else:
                     algorithm = clicked_function
-                    previous_path = []  
+                    previous_path = []
                     path = algorithm(snake[-1], food, obstacles | set(snake[:-1]))
-                    draw_path(path)  
+                    draw_path(path)
 
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:
