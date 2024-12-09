@@ -199,7 +199,7 @@ def game_over_screen(message="Game Over!"):
     screen.fill((30, 30, 30))
     font = pygame.font.Font(None, 50)
     text = font.render(message, True, RED)
-    text_rect = text.get_rect(center=(GRID_OFFSET_X + GRID_WIDTH // 2, GRID_OFFSET_Y + GRID_HEIGHT // 2))
+    text_rect = text.get_rect(center=(screen.get_width() // 2, screen.get_height() // 2))
     screen.blit(text, text_rect)
     pygame.display.flip()
     pygame.time.wait(1500)
