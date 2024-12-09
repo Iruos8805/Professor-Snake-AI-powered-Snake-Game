@@ -216,6 +216,103 @@ def draw_score():
     pygame.draw.rect(screen, (255, 0, 0), score_rect, border_radius=border_radius, width=border_thickness)
     screen.blit(score_text, (SCREEN_SIZE - text_width - padding + padding, 20 + (padding // 2)))
 
+algorithm_details = {
+    'BFS': {
+        'pros': 'Explores the shortest path first.',
+        'cons': 'Can use a lot of memory for large grids.'
+    },
+    'A*': {
+        'pros': 'Uses heuristics to find the shortest path efficiently.',
+        'cons': 'Requires a good heuristic function.'
+    },
+    'DFS': {
+        'pros': 'Easy to implement, uses less memory.',
+        'cons': 'Can get stuck in infinite loops without proper handling.'
+    },
+    'Greedy BFS': {
+        'pros': 'Faster than BFS in some cases, focuses on the goal.',
+        'cons': 'Doesn’t always find the optimal path.'
+    },
+    'Iterative Deepening DFS': {
+        'pros': 'Combines DFS and BFS, finds the goal faster.',
+        'cons': 'Can be slow for large search spaces.'
+    },
+    'Bidirectional Search': {
+        'pros': 'Very efficient for large grids, as it searches from both ends.',
+        'cons': 'More complex to implement.'
+    },
+}
+
+
+def wrap_text(text, font, max_width):
+    """Wrap text to fit within the given width (max_width)."""
+    words = text.split(' ')
+    lines = []
+    current_line = []
+
+    for word in words:
+        # I am checking if the new word added is exceeding thee max width
+        test_line = ' '.join(current_line + [word])
+        test_width, _ = font.size(test_line)
+
+        if test_width <= max_width:
+            current_line.append(word)
+        else:
+            # I am starting a new line if width exceeds
+            lines.append(' '.join(current_line))
+            current_line = [word]
+
+    # I am adding the last line
+    if current_line:
+        lines.append(' '.join(current_line))
+
+    return lines
+
+
+
+def draw_algorithm_info():
+
+    info_rect = pygame.Rect(START_X, SCREEN_SIZE - 225, SCREEN_SIZE - 25, 150)  
+    pygame.draw.rect(screen, (0, 0, 0), info_rect, border_radius=10) 
+    pygame.draw.rect(screen, (255, 0, 0), info_rect, border_radius=10, width=3)  
+    
+    info_font = pygame.font.Font(font_path, 24)
+  
+    if current_algorithm in algorithm_details:
+        details = algorithm_details[current_algorithm]
+        pros_text = f"Pros: {details['pros']}"
+        cons_text = f"Cons: {details['cons']}"
+
+        max_width = info_rect.width - 20 
+        pros_lines = wrap_text(pros_text, info_font, max_width)
+        cons_lines = wrap_text(cons_text, info_font, max_width)
+
+
+        line_height = info_font.get_height()
+        padding = 10
+
+
+        top_y = info_rect.top + padding
+        current_y = top_y
+
+        for line in pros_lines:
+            pros_surface = info_font.render(line, True, WHITE)
+            screen.blit(pros_surface, (info_rect.left + padding, current_y))
+            current_y += line_height  
+
+
+        gap_between_pros_and_cons = 5  
+        current_y = info_rect.top + padding + len(pros_lines) * line_height + gap_between_pros_and_cons
+
+ 
+        for line in cons_lines:
+            cons_surface = info_font.render(line, True, WHITE)
+            screen.blit(cons_surface, (info_rect.left + padding, current_y))
+            current_y += line_height  
+
+
+
+
 def game_loop(clock, obstacle_file=None):
     global dragging, last_pos, current_algorithm, food, score, obstacles
     dragging = False
@@ -224,7 +321,6 @@ def game_loop(clock, obstacle_file=None):
     food = (random.randint(0, GRID_SIZE - 1), random.randint(0, GRID_SIZE - 1))
     obstacles = set()
 
-    # Load obstacles from file if provided
     if obstacle_file:
         load_obstacles_from_file(obstacle_file)
 
@@ -269,6 +365,8 @@ def game_loop(clock, obstacle_file=None):
             pygame.time.wait(2000)
 
         draw_score()
+
+        draw_algorithm_info()
 
         time_delta = clock.tick(60) / 1000.0
 
