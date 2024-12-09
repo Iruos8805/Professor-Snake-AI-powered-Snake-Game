@@ -77,7 +77,7 @@ def load_obstacles_from_file(file_path):
                     else:
                         print(f"Obstacle invalid!!")
     except FileNotFoundError:
-        print(f"Error: File {file_path} not found.")
+        print(f"File {file_path} not found.")
     except Exception as e:
         print(f"Error loading obstacles: {e}")
 
