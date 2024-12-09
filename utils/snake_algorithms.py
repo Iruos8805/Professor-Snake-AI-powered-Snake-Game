@@ -80,48 +80,29 @@ def a_star(start, goal, obstacles):
 
 def greedy_bfs(start, goal, obstacles):
     def heuristic(cell, goal):
-        # Manhattan distance as heuristic (you can modify based on needs)
-        return abs(cell[0] - goal[0]) + abs(cell[1] - goal[1])
+        return abs(cell[0] - goal[0]) + abs(cell[1] - goal[1]) 
 
     open_set = []
-    # Initially push the start node with its heuristic value
     heapq.heappush(open_set, (heuristic(start, goal), start))
     visited = set()
     parent = {start: None}
 
     while open_set:
-        # Pop the node with the smallest heuristic value
         _, current = heapq.heappop(open_set)
-
-        # Check if we have reached the goal
         if current == goal:
-            # Reconstruct the path
             path = []
             while current:
                 path.append(current)
                 current = parent[current]
             return path[::-1]
 
-        # Mark the current node as visited
         visited.add(current)
-
-        # Explore neighbors
         for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
             neighbor = (current[0] + dx, current[1] + dy)
-
-            # Check if the neighbor is within bounds, not visited, and not an obstacle
-            if (
-                0 <= neighbor[0] < GRID_SIZE and
-                0 <= neighbor[1] < GRID_SIZE and
-                neighbor not in visited and
-                neighbor not in obstacles
-            ):
-                visited.add(neighbor)  # Add neighbor to visited to prevent re-processing
+            if 0 <= neighbor[0] < GRID_SIZE and 0 <= neighbor[1] < GRID_SIZE and neighbor not in visited and neighbor not in obstacles:
+                visited.add(neighbor)
                 parent[neighbor] = current
-                # Add the neighbor to the open set with its heuristic value
                 heapq.heappush(open_set, (heuristic(neighbor, goal), neighbor))
-
-    # Return None if there is no path to the goal
     return None
 
 
@@ -167,7 +148,7 @@ def bidirectional_search(start, goal, obstacles):
     visited_goal = set()
 
     while frontier_start and frontier_goal:
-        
+      
         current_start = frontier_start.pop()
         visited_start.add(current_start)
         for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
@@ -175,7 +156,7 @@ def bidirectional_search(start, goal, obstacles):
             if 0 <= neighbor[0] < GRID_SIZE and 0 <= neighbor[1] < GRID_SIZE and neighbor not in visited_start and neighbor not in obstacles:
                 parent_start[neighbor] = current_start
                 if neighbor in visited_goal:
-                    
+                    # Path found
                     path_start = []
                     path_goal = []
                     current = neighbor
@@ -190,7 +171,6 @@ def bidirectional_search(start, goal, obstacles):
 
                 frontier_start.add(neighbor)
 
-        
         current_goal = frontier_goal.pop()
         visited_goal.add(current_goal)
         for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
@@ -198,7 +178,7 @@ def bidirectional_search(start, goal, obstacles):
             if 0 <= neighbor[0] < GRID_SIZE and 0 <= neighbor[1] < GRID_SIZE and neighbor not in visited_goal and neighbor not in obstacles:
                 parent_goal[neighbor] = current_goal
                 if neighbor in visited_start:
-                    
+
                     path_start = []
                     path_goal = []
                     current = neighbor
