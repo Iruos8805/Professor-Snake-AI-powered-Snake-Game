@@ -58,7 +58,7 @@ tail_left = pygame.image.load("assets/tail_left.png").convert_alpha()
 tail_right = pygame.image.load("assets/tail_right.png").convert_alpha()
 tail_up = pygame.image.load("assets/tail_up.png").convert_alpha()
 
-START_X = GRID_WIDTH + 270
+START_X = GRID_WIDTH + 300
 
 def load_obstacles_from_file(file_path):
     global obstacles
@@ -245,24 +245,20 @@ algorithm_details = {
 
 
 def wrap_text(text, font, max_width):
-    """Wrap text to fit within the given width (max_width)."""
     words = text.split(' ')
     lines = []
     current_line = []
 
     for word in words:
-        # I am checking if the new word added is exceeding thee max width
         test_line = ' '.join(current_line + [word])
         test_width, _ = font.size(test_line)
 
         if test_width <= max_width:
             current_line.append(word)
         else:
-            # I am starting a new line if width exceeds
             lines.append(' '.join(current_line))
             current_line = [word]
 
-    # I am adding the last line
     if current_line:
         lines.append(' '.join(current_line))
 
@@ -271,10 +267,9 @@ def wrap_text(text, font, max_width):
 
 
 def draw_algorithm_info():
-
-    info_rect = pygame.Rect(START_X, SCREEN_SIZE - 225, SCREEN_SIZE - 25, 150)  
-    pygame.draw.rect(screen, (0, 0, 0), info_rect, border_radius=10) 
-    pygame.draw.rect(screen, (255, 0, 0), info_rect, border_radius=10, width=3)  
+    info_rect = pygame.Rect(START_X - 110, SCREEN_SIZE - 225, SCREEN_SIZE - 25, 150)  
+    pygame.draw.rect(screen, (166, 169, 106), info_rect, border_radius=10) 
+    pygame.draw.rect(screen, (102, 102, 58), info_rect, border_radius=10, width=3)  
     
     info_font = pygame.font.Font(font_path, 24)
   
@@ -287,31 +282,24 @@ def draw_algorithm_info():
         pros_lines = wrap_text(pros_text, info_font, max_width)
         cons_lines = wrap_text(cons_text, info_font, max_width)
 
-
         line_height = info_font.get_height()
         padding = 10
-
 
         top_y = info_rect.top + padding
         current_y = top_y
 
         for line in pros_lines:
-            pros_surface = info_font.render(line, True, WHITE)
+            pros_surface = info_font.render(line, True, BLACK)
             screen.blit(pros_surface, (info_rect.left + padding, current_y))
             current_y += line_height  
 
-
         gap_between_pros_and_cons = 5  
         current_y = info_rect.top + padding + len(pros_lines) * line_height + gap_between_pros_and_cons
-
  
         for line in cons_lines:
-            cons_surface = info_font.render(line, True, WHITE)
+            cons_surface = info_font.render(line, True, BLACK)
             screen.blit(cons_surface, (info_rect.left + padding, current_y))
             current_y += line_height  
-
-
-
 
 def game_loop(clock, obstacle_file=None):
     global dragging, last_pos, current_algorithm, food, score, obstacles

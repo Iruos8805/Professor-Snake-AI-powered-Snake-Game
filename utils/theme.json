@@ -12,14 +12,11 @@
             "selected_image": {
                 "path":"assets/Button/button_active.png"
             }
-        }
-    },
-    "#score_label": {
-        
+        },
         "font": {
             "name":"matrix",
-            "size":"24",
-            "regular_path": "assets/led_counter-7.ttf"
+            "size":"14",
+            "regular_path": "assets/PixelifySans-VariableFont_wght.ttf"
         }
     }
 }
