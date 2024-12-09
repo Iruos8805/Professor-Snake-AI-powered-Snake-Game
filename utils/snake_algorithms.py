@@ -156,7 +156,6 @@ def bidirectional_search(start, goal, obstacles):
             if 0 <= neighbor[0] < GRID_SIZE and 0 <= neighbor[1] < GRID_SIZE and neighbor not in visited_start and neighbor not in obstacles:
                 parent_start[neighbor] = current_start
                 if neighbor in visited_goal:
-                    # Path found
                     path_start = []
                     path_goal = []
                     current = neighbor
