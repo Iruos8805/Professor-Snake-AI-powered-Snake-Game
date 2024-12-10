@@ -203,7 +203,7 @@ def game_over_screen(message="Game Over!"):
     screen.blit(text, text_rect)
     pygame.display.flip()
     pygame.time.wait(1500)
-    game_loop(Clock)
+    game_loop(Clock,"maze.txt")
 
 def draw_score():
     score_text = font.render(f"SCORE: {score:03d}", True, WHITE)
